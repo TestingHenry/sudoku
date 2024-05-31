@@ -1,222 +1,218 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width,
-								initial-scale=1.0">
-	<title>Sudoku Puzzle</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			background-color: #F5FCFF;
-		}
-
-		.container {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			margin-top: 50px;
-		}
-
-		.row {
-			display: flex;
-		}
-
-		.cell {
-			width: 30px;
-			height: 30px;
-			border: 1px solid black;
-			text-align: center;
-			line-height: 30px;
-			box-sizing: border-box;
-		}
-
-		.lightBackground {
-			background-color: #A9A9A9;
-		}
-
-		.darkBackground {
-			background-color: #EBF3E8;
-		}
-
-		.buttonContainer {
-			margin-top: 20px;
-			display: flex;
-			/* Ensure buttons are always displayed */
-			align-items: center;
-			justify-content: center;
-		}
-
-		.buttonContainer button {
-			margin-right: 10px;
-			/* Add margin between buttons */
-		}
-
-		.result {
-			margin-top: 20px;
-			font-weight: bold;
-		}
-
-		.correct {
-			color: green;
-		}
-
-		.incorrect {
-			color: red;
-		}
-	</style>
+  <title>Sudoku Game</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      margin: 20px auto;
+    }
+    
+    td {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    
+    .fixed {
+      background-color: #ddd;
+      cursor: default;
+    }
+    
+    .selected {
+      background-color: #ffa;
+    }
+    
+    .box-border {
+      border-width: 1px;
+    }
+    
+    .row-border {
+      border-bottom-width: 1px;
+    }
+    
+    .col-border {
+      border-right-width: 1px;
+    }
+  </style>
 </head>
-
 <body>
+  <h1>Sudoku Game</h1>
+  
+  <table id="sudoku-board">
+    <!-- Sudoku board will be generated here -->
+  </table>
+  
+  <button onclick="resetGame()">Reset Game</button>
+  
+  <script>
+    let selectedCell = null;
+    let sudokuBoard = [];
 
-	<div class="container" id="container"></div>
+    // Function to check if a number is valid in a given position
+    function isValid(board, row, col, num) {
+      // Check row
+      for (let i = 0; i < 9; i++) {
+        if (board[row][i] === num) return false;
+      }
 
-	<div class="buttonContainer">
-		<button id="solveButton">Solve</button>
-		<button id="resetButton">Reset</button>
-	</div>
+      // Check column
+      for (let i = 0; i < 9; i++) {
+        if (board[i][col] === num) return false;
+      }
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function () {
-			const container = document.getElementById("container");
+      // Check 3x3 box
+      const boxRow = Math.floor(row / 3);
+      const boxCol = Math.floor(col / 3);
+      for (let i = boxRow * 3; i < boxRow * 3 + 3; i++) {
+        for (let j = boxCol * 3; j < boxCol * 3 + 3; j++) {
+          if (board[i][j] === num) return false;
+        }
+      }
 
-			// Function to generate a random Sudoku puzzle
-			function generateRandomSudoku() {
-				// Placeholder function for generating a random puzzle (9x9)
-				const puzzle = [
-					[5, 3, 0, 0, 7, 0, 0, 0, 0],
-					[6, 0, 0, 1, 9, 5, 0, 0, 0],
-					[0, 9, 8, 0, 0, 0, 0, 6, 0],
-					[8, 0, 0, 0, 6, 0, 0, 0, 3],
-					[4, 0, 0, 8, 0, 3, 0, 0, 1],
-					[7, 0, 0, 0, 2, 0, 0, 0, 6],
-					[0, 6, 0, 0, 0, 0, 2, 8, 0],
-					[0, 0, 0, 4, 1, 9, 0, 0, 5],
-					[0, 0, 0, 0, 8, 0, 0, 7, 9]
-				];
-				return puzzle;
-			}
+      return true;
+    }
 
-			// Function to solve the Sudoku puzzle
-			function solveSudoku(board) {
-				// Placeholder function for solving Sudoku puzzle
-				const solvedPuzzle = JSON.parse(JSON.stringify(board));
-				solveHelper(solvedPuzzle);
-				return solvedPuzzle;
-			}
+    // Function to solve the Sudoku board
+    function solveSudoku(board) {
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          if (board[i][j] === 0) {
+            for (let num = 1; num <= 9; num++) {
+              if (isValid(board, i, j, num)) {
+                board[i][j] = num;
+                if (solveSudoku(board)) return true;
+                board[i][j] = 0;
+              }
+            }
+            return false;
+          }
+        }
+      }
+      return true;
+    }
 
-			// Helper function for solving Sudoku recursively
-			function solveHelper(board) {
-				const emptyCell = findEmptyCell(board);
-				if (!emptyCell) {
-					return true; // Puzzle solved
-				}
+    // Function to generate a valid Sudoku board
+    function generateSudokuBoard() {
+      sudokuBoard = new Array(9).fill(0).map(() => new Array(9).fill(0));
 
-				const [row, col] = emptyCell;
-				for (let num = 1; num <= 9; num++) {
-					if (isValidMove(board, row, col, num)) {
-						board[row][col] = num;
-						if (solveHelper(board)) {
-							return true;
-						}
-						board[row][col] = 0; // Backtrack
-					}
-				}
-				return false; // No valid number found for this cell
-			}
+      // Fill the board with valid numbers
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+          shuffleArray(numbers);
+          for (let k = 0; k < 9; k++) {
+            if (isValid(sudokuBoard, i, j, numbers[k])) {
+              sudokuBoard[i][j] = numbers[k];
+              break;
+            }
+          }
+        }
+      }
 
-			// Function to find an empty cell in the Sudoku puzzle
-			function findEmptyCell(board) {
-				for (let row = 0; row < 9; row++) {
-					for (let col = 0; col < 9; col++) {
-						if (board[row][col] === 0) {
-							return [row, col];
-						}
-					}
-				}
-				return null; // No empty cell found
-			}
+      // Remove some values to create the puzzle
+      const numToRemove = 40;
+      for (let i = 0; i < numToRemove; i++) {
+        let row, col;
+        do {
+          row = Math.floor(Math.random() * 9);
+          col = Math.floor(Math.random() * 9);
+        } while (sudokuBoard[row][col] === 0);
+        sudokuBoard[row][col] = 0;
+      }
+    }
 
-			// Function to check if a move is valid
-			function isValidMove(board, row, col, num) {
-				// Check row
-				for (let i = 0; i < 9; i++) {
-					if (board[row][i] === num) {
-						return false;
-					}
-				}
-				// Check column
-				for (let i = 0; i < 9; i++) {
-					if (board[i][col] === num) {
-						return false;
-					}
-				}
-				// Check 3x3 grid
-				const startRow = Math.floor(row / 3) * 3;
-				const startCol = Math.floor(col / 3) * 3;
-				for (let i = startRow; i < startRow + 3; i++) {
-					for (let j = startCol; j < startCol + 3; j++) {
-						if (board[i][j] === num) {
-							return false;
-						}
-					}
-				}
-				return true; // Move is valid
-			}
+    // Function to shuffle an array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
 
-			// Function to create the Sudoku puzzle grid
-			function createSudokuGrid(puzzle) {
-				container.innerHTML = '';
-				puzzle.forEach((row, rowIndex) => {
-					const rowElement = document.createElement('div');
-					rowElement.classList.add('row');
-					row.forEach((cell, columnIndex) => {
-						const cellElement = document.createElement('input');
-						cellElement.classList.add('cell');
-						cellElement.classList
-							.add((rowIndex + columnIndex) % 2 === 0 ?
-								'lightBackground' : 'darkBackground');
-						cellElement.type = 'text';
-						cellElement.maxLength = 1;
-						cellElement.value = cell !== 0 ? cell : '';
-						rowElement.appendChild(cellElement);
-					});
-					container.appendChild(rowElement);
-				});
-			}
+    // Function to generate the Sudoku board
+    function generateBoard() {
+      const board = document.getElementById('sudoku-board');
+      board.innerHTML = '';
 
-			// Initialize puzzle
-			let initialPuzzle = generateRandomSudoku();
-			let puzzle = JSON.parse(JSON.stringify(initialPuzzle));
-			let solvedPuzzle = [];
+      generateSudokuBoard();
 
-			// Function to solve the puzzle
-			function solvePuzzle() {
-				solvedPuzzle = solveSudoku(puzzle);
-				createSudokuGrid(solvedPuzzle);
-			}
+      for (let i = 0; i < 9; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < 9; j++) {
+          const cell = document.createElement('td');
+          cell.dataset.row = i;
+          cell.dataset.col = j;
+          if (sudokuBoard[i][j] !== 0) {
+            cell.textContent = sudokuBoard[i][j];
+            cell.classList.add('fixed');
+          }
 
-			// Function to reset the puzzle
-			function resetPuzzle() {
-				initialPuzzle = generateRandomSudoku();
-				puzzle = JSON.parse(JSON.stringify(initialPuzzle));
-				solvedPuzzle = [];
-				createSudokuGrid(puzzle);
-			}
+          // Add border classes based on cell position
+          if (j % 3 === 2) cell.classList.add('box-border');
+          if (i % 3 === 2) cell.classList.add('box-border');
+          if (j !== 8) cell.classList.add('col-border');
+          if (i !== 8) cell.classList.add('row-border');
 
-			// Initial puzzle creation
-			createSudokuGrid(puzzle);
+          cell.addEventListener('click', () => selectCell(cell));
+          row.appendChild(cell);
+        }
+        board.appendChild(row);
+      }
+    }
 
-			// Attach event listeners to buttons
-			document.getElementById("solveButton")
-				.addEventListener("click", solvePuzzle);
-			document.getElementById("resetButton")
-				.addEventListener("click", resetPuzzle);
-		});
-	</script>
+    // Function to select a cell on the Sudoku board
+    function selectCell(cell) {
+      if (cell.classList.contains('fixed')) return;
 
+      if (selectedCell) {
+        selectedCell.classList.remove('selected');
+      }
+      cell.classList.add('selected');
+      selectedCell = cell;
+    }
+
+    // Function to add a number to the selected cell
+    function addNumber(num) {
+      if (!selectedCell) return;
+
+      // Remove the previously entered number
+      selectedCell.textContent = '';
+
+      // Add the new number
+      selectedCell.textContent = num;
+      sudokuBoard[selectedCell.dataset.row][selectedCell.dataset.col] = num;
+    }
+
+    // Function to delete the number in the selected cell
+    function deleteNumber() {
+      if (!selectedCell) return;
+
+      // Remove the number from the cell
+      selectedCell.textContent = '';
+      sudokuBoard[selectedCell.dataset.row][selectedCell.dataset.col] = 0;
+    }
+
+    // Function to reset the game
+    function resetGame() {
+      generateBoard();
+      selectedCell = null;
+    }
+
+    // Generate the initial Sudoku board
+    generateBoard();
+
+    // Add event listeners for number input and deletion
+    document.addEventListener('keydown', (event) => {
+      if (event.key >= '1' && event.key <= '9') {
+        addNumber(parseInt(event.key));
+      } else if (event.key === 'Delete' || event.key === 'Backspace') {
+        deleteNumber();
+      }
+    });
+  </script>
 </body>
-
 </html>
-
